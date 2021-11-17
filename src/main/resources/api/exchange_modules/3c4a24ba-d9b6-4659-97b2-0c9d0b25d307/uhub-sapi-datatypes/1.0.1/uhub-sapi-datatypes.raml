@@ -1,0 +1,84 @@
+#%RAML 1.0 Library
+usage: to datatypes for request and response for sapi api
+
+types:
+  covid-case-request-type:
+    type: object
+    description: This type used to register and update covid case
+    properties:
+      source: 
+        type: string
+        required: true
+        minLength: 1
+        maxLength: 60
+      caseType: 
+        type: string
+        required: true
+        minLength: 1
+        maxLength: 20
+      firstName: 
+        type: string
+        required: true
+        minLength: 1
+        maxLength: 20
+      lastName: 
+        type: string
+        required: true
+        minLength: 1
+        maxLength: 20
+      phone: 
+        type: string
+        required: true
+        minLength: 1
+        maxLength: 12
+      email: 
+        type: string
+        required: false
+        minLength: 1
+        maxLength: 50
+      dateOfBirth:
+        type: date-only
+        required: true
+      nationalID: 
+        type: string
+        required: true
+        minLength: 1
+        maxLength: 20
+      nationalIDType:
+        type: string
+        required: true
+        minLength: 1
+        maxLength: 20
+      address:
+        type: object
+        properties:
+          streetAddress: 
+            type: string
+            required: true
+            minLength: 1
+            maxLength: 30
+          city: 
+            type: string
+            required: true
+            minLength: 1
+            maxLength: 30
+          state: 
+            type: string
+            required: true
+            minLength: 1
+            maxLength: 30
+          postal: 
+            type: string
+            required: true
+            minLength: 1
+            maxLength: 30
+          country: 
+            type: string
+            required: true
+            minLength: 1
+            maxLength: 30
+  covid-case-response-type:
+    type: object
+    properties:
+      caseID: 
+        type: string      

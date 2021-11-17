@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:munit="http://www.mulesoft.org/schema/mule/munit"
+	xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<munit:config name="register-covid-case-test-suite.xml" />
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="6afbe8da-53e3-4838-8538-dcbe21c69710" basePath="/api" responseTimeout="60000">
+		<http:request-connection host="localhost" port="8081" />
+	</http:request-config>
+	<http:request-config name="HTTP_Request_configuration1" doc:name="HTTP Request configuration" doc:id="f2c69c0c-124a-4c40-b4f6-008eecd375e9" basePath="/api" >
+		<http:request-connection host="localhost" port="8081" />
+	</http:request-config>
+	<munit:test name="register-covid-case-test-suite-success-response" doc:id="c5ef08e5-09b7-49c0-a536-8b52f28d81b2" description="Test">
+		<munit:enable-flow-sources >
+			<munit:enable-flow-source value="uhub-sapi-main" />
+			<munit:enable-flow-source value="post:\cases:application\json:uhub-sapi-config" />
+		</munit:enable-flow-sources>
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock Register Covid Insert" doc:id="0ff808af-3923-42ba-b8a2-97bcffeaa1f2" processor="db:insert">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="f04b74b9-34b2-4785-89d3-786477b370c9" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[output application/json --- readUrl('classpath://register_covid_case_test_resources/register_covid_case_response.json')]" mediaType="application/json" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Covid Request Payload" doc:id="7f33ae77-b224-4b9d-a515-df59afc818f3">
+				<munit:payload value="#[output application/json --- readUrl('classpath://register_covid_case_test_resources/register_covid_case_request.json')]" mediaType="application/json" />
+			</munit:set-event>
+			<http:request method="POST" doc:name="Request To uhub-sapi-mainflow" doc:id="1684cece-a6c0-47cd-a70a-e104d6d6e23b" config-ref="HTTP_Request_configuration" path="/cases" sendCorrelationId="AUTO" responseTimeout="60000">
+				<http:headers ><![CDATA[#[output application/java
+---
+{
+	"client-id" : "12345",
+	"client-secret" : "789889",
+	"Content-Type" : "application/json"
+}]]]></http:headers>
+			</http:request>
+		</munit:execution>
+		<munit:validation >
+			<logger level="INFO" doc:name="Logger" doc:id="70c71e6f-5f98-4372-ba9a-27bf2ca3a036" message="#[payload]"/>
+			<munit-tools:assert doc:name="Assert Success Response" doc:id="aab05b3e-4b9f-4ab0-aad2-a7a3de2b3451" >
+				<munit-tools:that ><![CDATA[#[import register_covid_case_test_resources::assert_validate_expression
+---
+assert_validate_expression::main({payload: payload, attributes: attributes, vars: vars})]]]></munit-tools:that>
+			</munit-tools:assert>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="register-covid-case-test-bad-request-400" doc:id="6cbaaca4-c225-4b2c-b1b8-4a5075bbcc8b" >
+		<munit:enable-flow-sources >
+			<munit:enable-flow-source value="uhub-sapi-main" />
+			<munit:enable-flow-source value="global-prepare-error-response-sub-flow" />
+			<munit:enable-flow-source value="post:\cases:application\json:uhub-sapi-config" />
+			<munit:enable-flow-source value="uhub-dbSub_Flow" />
+		</munit:enable-flow-sources>
+		<munit:execution>
+			<munit:set-event doc:name="Set Covid Request Payload" doc:id="d942c1f3-8ffd-4cbb-ac7b-5993c6a84237">
+				<munit:payload value="#[output application/json --- readUrl('classpath://register_covid_case_test_resources/register_covid_case_request.json')]" mediaType="application/json" />
+			</munit:set-event>
+			<try doc:name="Try" doc:id="67dbc515-d1f9-483e-a134-e743e72f2447" >
+				<http:request method="POST" doc:name="Request" doc:id="d9e827a7-a3c5-487b-8767-e54e5ab598db" config-ref="HTTP_Request_configuration1" path="/cases" responseTimeout="120000">
+					<http:headers><![CDATA[#[output application/java
+---
+{
+	"client-id" : "12345",
+	"Content-Type" : "application/json"
+}]]]></http:headers>
+				</http:request>
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="75d105f2-4e32-44bf-8bfb-855a578f66ca" type="ANY">
+						<set-payload value="#[vars.responsePayload]" doc:name="Set Payload" doc:id="b87fcd94-a721-416c-b7c8-72ef8f04b145" />
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation >
+			<logger level="INFO" doc:name="_Logger" doc:id="a034816e-bffd-4462-bbd2-f7255326c849" message="#[payload]" />
+			<munit-tools:assert doc:name="Assert Bad Request 400 Response" doc:id="fa385a9f-3bba-4bd0-ad3e-d571661d9206" >
+				<munit-tools:that ><![CDATA[#[import register_covid_case_test_resources::assert_bad_request_400
+---
+assert_bad_request_400::main({payload: payload, attributes: attributes, vars: vars})]]]></munit-tools:that>
+			</munit-tools:assert>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="register-covid-case-test-method-not-allowed-405" doc:id="db9c80a0-95b8-4cdf-a35c-3593880e1353" >
+		<munit:enable-flow-sources >
+			<munit:enable-flow-source value="uhub-sapi-main" />
+			<munit:enable-flow-source value="global-prepare-error-response-sub-flow" />
+		</munit:enable-flow-sources>
+		<munit:execution >
+			<munit:set-event doc:name="Set Covid Request Payload" doc:id="f321a49f-1e17-4a15-9ad4-155194bb77ff" >
+				<munit:payload value="#[output application/json --- readUrl('classpath://register_covid_case_test_resources/register_covid_case_request.json')]" mediaType="application/json" />
+			</munit:set-event>
+			<http:request method="GET" doc:name="Request To uhub-sapi-mainflow" doc:id="f70c6957-f592-432d-bbf6-e17130ec97ef" config-ref="HTTP_Request_configuration" path="/cases" sendCorrelationId="AUTO" responseTimeout="60000" >
+				<http:headers ><![CDATA[#[output application/java
+---
+{
+	"client-id" : "12345",
+	"client-secret" : "789889",
+	"Content-Type" : "application/json"
+}]]]></http:headers>
+			</http:request>
+		</munit:execution>
+		<munit:validation >
+			<logger level="INFO" doc:name="_Logger" doc:id="3e1fc169-dbd3-4ae7-afce-15ab178cc12b" message="#[payload]" />
+			<munit-tools:assert doc:name="Assert Method Not Allowed 405 Response" doc:id="d824843d-4057-4d4d-943b-e667618d2049" >
+				<munit-tools:that ><![CDATA[#[import register_covid_case_test_resources::assert_method_not_allowed_405
+---
+assert_method_not_allowed_405::main({payload: payload, attributes: attributes, vars: vars})]]]></munit-tools:that>
+			</munit-tools:assert>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="register-covid-case-test-not-found-404" doc:id="cd2d145a-c056-4001-aa02-9bfb67435926" >
+		<munit:enable-flow-sources >
+			<munit:enable-flow-source value="uhub-sapi-main" />
+		</munit:enable-flow-sources>
+		<munit:execution >
+			<munit:set-event doc:name="Set Covid Request Payload" doc:id="b97cbb4d-4de4-4496-b9d6-06e8f1b6f069" >
+				<munit:payload value="#[output application/json --- readUrl('classpath://register_covid_case_test_resources/register_covid_case_request.json')]" mediaType="application/json" />
+			</munit:set-event>
+			<http:request method="POST" doc:name="Request To uhub-sapi-mainflow" doc:id="682fe7f7-8164-4ee9-9771-8d9d7b2060ff" config-ref="HTTP_Request_configuration" path="/case" sendCorrelationId="AUTO" responseTimeout="60000" >
+				<http:headers ><![CDATA[#[output application/java
+---
+{
+	"client-id" : "12345",
+	"client-secret" : "789889",
+	"Content-Type" : "application/json"
+}]]]></http:headers>
+			</http:request>
+		</munit:execution>
+		<munit:validation >
+			<logger level="INFO" doc:name="_Logger" doc:id="56ba07d4-3b19-4399-9626-19edd6d981c9" message="#[payload]" />
+			<munit-tools:assert doc:name="Assert Not Found 404 Response" doc:id="0636e8ba-378c-4a23-b5cb-683511d4557d" >
+				<munit-tools:that ><![CDATA[#[import register_covid_case_test_resources::assert_not_found_404
+---
+assert_not_found_404::main({payload: payload, attributes: attributes, vars: vars})]]]></munit-tools:that>
+			</munit-tools:assert>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="register-covid-case-test-unsopported-mediaType-415" doc:id="e983d6b3-e91f-44e0-ae2b-6e1868d3a72c" >
+		<munit:enable-flow-sources >
+			<munit:enable-flow-source value="uhub-sapi-main" />
+		</munit:enable-flow-sources>
+		<munit:execution >
+			<munit:set-event doc:name="Set Covid Request Payload" doc:id="360d902c-4a07-41c2-95d1-2ddd892d0065" >
+				<munit:payload value="#[output application/json --- readUrl('classpath://register_covid_case_test_resources/register_covid_case_request.json')]" mediaType="application/json" />
+			</munit:set-event>
+			<http:request method="POST" doc:name="Request To uhub-sapi-mainflow" doc:id="3202dfe7-7559-4838-a640-ab0db9801ded" config-ref="HTTP_Request_configuration" path="/cases" sendCorrelationId="AUTO" responseTimeout="60000">
+				<http:headers ><![CDATA[#[output application/java
+---
+{
+	"client-id" : "12345",
+	"client-secret" : "789889",
+	"Content-Type" : "text/plain"
+}]]]></http:headers>
+			</http:request>
+		</munit:execution>
+		<munit:validation >
+			<logger level="INFO" doc:name="_Logger" doc:id="0f8e19c7-8855-4d86-a313-c09e8961e316" message="#[payload]" />
+			<munit-tools:assert doc:name="Assert UnsupportedMediaType 415 Response" doc:id="355469dc-5182-4b59-9199-898e75dfe330" >
+				<munit-tools:that ><![CDATA[#[import register_covid_case_test_resources::assert_unsupported_media_type_415
+---
+assert_unsupported_media_type_415::main({payload: payload, attributes: attributes, vars: vars})]]]></munit-tools:that>
+			</munit-tools:assert>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="register-covid-case-test-service-unavailable-503" doc:id="8e47ef93-9ada-4705-81c6-cd152b8f92f1" >
+		<munit:enable-flow-sources >
+			<munit:enable-flow-source value="uhub-sapi-main" />
+		</munit:enable-flow-sources>
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock Register Covid Insert" doc:id="3c033634-2808-49e4-99d6-e8c5d1521dc6" processor="db:insert" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="f04b74b9-34b2-4785-89d3-786477b370c9" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="DB:CONNECTIVITY" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Covid Request Payload" doc:id="04f2066c-e51d-4703-9cc4-56d3bcaabfbf" >
+				<munit:payload value="#[output application/json --- readUrl('classpath://register_covid_case_test_resources/register_covid_case_request.json')]" mediaType="application/json" />
+			</munit:set-event>
+			<http:request method="POST" doc:name="Request To uhub-sapi-mainflow" doc:id="c4dcaabc-b993-4006-bae5-5a540e75ed8e" config-ref="HTTP_Request_configuration" path="/cases" sendCorrelationId="AUTO" responseTimeout="60000" >
+				<http:headers ><![CDATA[#[output application/java
+---
+{
+	"client-id" : "12345",
+	"client-secret" : "789889",
+	"Content-Type" : "application/json"
+}]]]></http:headers>
+			</http:request>
+		</munit:execution>
+		<munit:validation >
+			<logger level="INFO" doc:name="_Logger" doc:id="eb12855d-ea04-4522-9b5a-e2b4291a2b2b" message="#[payload]" />
+			<munit-tools:assert doc:name="Assert Service Unavailable 503 Response" doc:id="e5407e7c-e135-4cf2-b39f-06f637f781a5" >
+				<munit-tools:that ><![CDATA[#[import register_covid_case_test_resources::assert_service_unavailable_503
+---
+assert_service_unavailable_503::main({payload: payload, attributes: attributes, vars: vars})]]]></munit-tools:that>
+			</munit-tools:assert>
+		</munit:validation>
+	</munit:test>
+
+
+</mule>

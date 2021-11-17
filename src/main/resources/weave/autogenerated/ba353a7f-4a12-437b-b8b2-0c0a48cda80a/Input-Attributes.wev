@@ -1,0 +1,29 @@
+%dw 2.0
+
+type auto_ba353a7f_4a12_437b_b8b2_0c0a48cda80a_Input_Attributes = {|
+  clientCertificate?: {|
+    publicKey?: {|  |}, 
+    "type"?: String, 
+    encoded?: Binary
+  |}, 
+  headers: {|
+    "client-id": String, 
+    "client-secret": String, 
+    "transaction-id": String, 
+    "correlation-id": String, 
+    "correlation-secret": String
+  |}, 
+  listenerPath: String, 
+  method: String, 
+  queryParams: {|  |}, 
+  queryString: String, 
+  relativePath: String, 
+  remoteAddress: String, 
+  requestPath: String, 
+  requestUri: String, 
+  scheme: String, 
+  uriParams: {| environment: "uho-prod-uhub-sapi" | "uho-test-uhub-sapi" | "uho-dev-uhub-sapi" | "uho-uat-uhub-sapi" |}, 
+  version: String, 
+  localAddress: String
+|}
+
