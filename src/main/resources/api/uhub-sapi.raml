@@ -1,0 +1,65 @@
+#%RAML 1.0
+title: uhub-sapi
+description: to develop system api
+version: v1
+baseUriParameters:
+  environment:
+    description: DEV, TEST, UAT, PROD
+    enum: ["uho-dev-uhub-sapi", "uho-test-uhub-sapi", "uho-uat-uhub-sapi", "uho-prod-uhub-sapi"]
+
+baseUri: http://{environment}/{version}
+
+traits:
+  client-header: !include /exchange_modules/3c4a24ba-d9b6-4659-97b2-0c9d0b25d307/client-id-header/1.0.1/client-id-header.raml
+  transaction-id: !include /exchange_modules/3c4a24ba-d9b6-4659-97b2-0c9d0b25d307/transaction-header/1.0.1/transaction-header.raml
+  correlation-id: !include /exchange_modules/3c4a24ba-d9b6-4659-97b2-0c9d0b25d307/correlation-id-header/1.0.1/correlation-id-header.raml
+
+uses:
+  common-datatypes:  /exchange_modules/3c4a24ba-d9b6-4659-97b2-0c9d0b25d307/common-error-datatypes/1.0.0/common-error-datatypes.raml
+  uhub-sapi-datatypes: /exchange_modules/3c4a24ba-d9b6-4659-97b2-0c9d0b25d307/uhub-sapi-datatypes/1.0.1/uhub-sapi-datatypes.raml
+
+/cases:
+  post:
+    description: to register covid case
+    is: [client-header, transaction-id, correlation-id]
+    body:
+      application/json:
+        type: uhub-sapi-datatypes.covid-case-request-type
+        example:  !include  /Examples/covid-case-request.json
+    responses:
+      500:
+        body:
+          application/json:
+            type: common-datatypes.errorType
+            example: !include   /Examples/500.json
+      400:
+        body:
+          application/json:
+            type: common-datatypes.errorType
+            example: !include   /Examples/400.json
+      503:
+        body:
+          application/json:
+            type: common-datatypes.errorType
+            example: !include   /Examples/503.json
+      201:
+        body:
+          application/json:
+            type: uhub-sapi-datatypes.covid-case-response-type
+            example:  !include  /Examples/covid-case-response.json
+  
+
+
+
+
+
+
+
+
+      
+
+
+
+
+
+

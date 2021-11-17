@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<sub-flow name="uhub-dbSub_Flow" doc:id="ba353a7f-4a12-437b-b8b2-0c0a48cda80a" >
+		<logger level="INFO" doc:name="Before Insert" doc:id="e9f2e2f6-7262-4a77-b684-9e675f7b4abb" message="transaction-id: #[vars.transaction_id], correlation-id: #[vars.correlation_id], payload: #[payload], message: before insert into register covid case"/>
+		<db:insert doc:id="f04b74b9-34b2-4785-89d3-786477b370c9" doc:name="Register Covid Case" config-ref="Database_Config" queryTimeout="6000" autoGenerateKeys="true">
+			<db:sql ><![CDATA[insert into cvd_case_master (source, case_type, first_name, last_name, phone, email, date_of_birth, national_id, national_id_type, street_address, city, state, postal, country, create_date, update_date, created_by, updated_by) 
+values(:source, :case_type, :first_name, :last_name, :phone, :email, TO_DATE(:date_of_birth, 'YYYY-MM-DD'), :national_id, :national_id_type, :street_address, :city, :state, :postal, :country, TO_DATE(:create_date, 'YYYY-MM-DD'), TO_DATE(:update_date, 'YYYY-MM-DD'), :created_by, :updated_by) ]]></db:sql>
+			<db:input-parameters ><![CDATA[#[payload]]]></db:input-parameters>
+			<db:auto-generated-keys-column-names >
+				<db:auto-generated-keys-column-name value="case_id" />
+			</db:auto-generated-keys-column-names>
+		</db:insert>
+		<logger level="INFO" doc:name="After Insert" doc:id="cb7e5812-a3fe-4d75-a0de-d7703feaf082" message="transaction-id: #[vars.transaction_id], correlation-id: #[vars.correlation_id], message: after inserting, payload: #[payload[0].case_id]"/>
+	</sub-flow>
+</mule>
