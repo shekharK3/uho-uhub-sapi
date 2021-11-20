@@ -21,6 +21,6 @@ http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/m
 	<secure-properties:config name="Secure_Properties_Config" doc:name="Secure Properties Config" doc:id="b140bdab-d115-40a9-bf37-20d525785424" file="${env}.yaml" key="abcdefghijklmnop" >
 		<secure-properties:encrypt algorithm="Blowfish" />
 	</secure-properties:config>
-	<api-gateway:autodiscovery apiId="${api.id}" ignoreBasePath="true" doc:name="API Autodiscovery" doc:id="9cae5427-b419-4cfe-8402-08c6d80a25cf" flowRef="uhub-sapi-main" />
+	<api-gateway:autodiscovery apiId="${api.id}" ignoreBasePath="true" doc:name="API Autodiscovery" doc:id="d1f37aca-dea5-41bc-878d-c67f934c8a56" flowRef="uhub-sapi-main" />
 	
 </mule>

@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd http://www.mulesoft.org/schema/mule/munit-tools http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd ">
+    <munit:config name="uhub-sapi-apikit-test.xml" />
+    <http:request-config name="HTTP_Request_Configuration" basePath="/api">
+        <http:request-connection host="localhost" port="8081" />
+    </http:request-config>
+    <munit:test name="post:\cases:application\json:uhub-sapi-config-201-application\json-FlowTest" description="Verifying functionality of [post:\cases:application\json:uhub-sapi-config-201-application\json]">
+        <munit:enable-flow-sources>
+            <munit:enable-flow-source value="uhub-sapi-main" />
+            <munit:enable-flow-source value="post:\cases:application\json:uhub-sapi-config" />
+        </munit:enable-flow-sources>
+        <munit:behavior>
+			<munit-tools:mock-when doc:name="Mock when" doc:id="cc010038-d46e-491a-9eea-8e1fd68add34" processor="db:insert">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="f04b74b9-34b2-4785-89d3-786477b370c9" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[output application/json --- [{&#10;    "case_id": 11&#10;}]  ]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+        </munit:behavior>
+		<munit:execution>
+            <set-payload value="#[MunitTools::getResourceAsString('scaffolder/request/post_cases_application_json.json')]" />
+			<http:request config-ref="HTTP_Request_Configuration" method="POST" path="/cases" responseTimeout="120000">
+                <http:headers><![CDATA[#[{"Accept":"application/json","client-secret":"","client-id":"","Content-Type":"application/json"}]]]></http:headers>
+            </http:request>
+        </munit:execution>
+        <munit:validation>
+            <munit-tools:assert-that expression="#[attributes.statusCode]" is="#[MunitTools::equalTo(201)]" message="The HTTP Status code is not correct!" doc:name="Assert That Status Code is 201" />
+            <munit-tools:assert-that expression="#[payload]" is="#[MunitTools::equalTo(readUrl('classpath://scaffolder/response/post_201_cases_application_json.json'))]" message="The response payload is not correct!" doc:name="Assert That - Payload is Expected" />
+        </munit:validation>
+    </munit:test>
+    <munit:test name="post:\cases:application\json:uhub-sapi-config-500-application\json-FlowTest" description="Verifying functionality of [post:\cases:application\json:uhub-sapi-config-500-application\json]">
+        <munit:enable-flow-sources>
+            <munit:enable-flow-source value="uhub-sapi-main" />
+            <munit:enable-flow-source value="post:\cases:application\json:uhub-sapi-config" />
+			<munit:enable-flow-source value="global-prepare-error-response-sub-flow" />
+        </munit:enable-flow-sources>
+        <munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="997dd1c3-4b5c-41e3-979c-c7bca09c5a83" processor="db:insert">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="f04b74b9-34b2-4785-89d3-786477b370c9" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="HTTP:INTERNAL_SERVER_ERROR" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution>
+            <set-payload value="#[MunitTools::getResourceAsString('scaffolder/request/post_cases_application_json.json')]" />
+			<http:request config-ref="HTTP_Request_Configuration" method="POST" path="/cases" responseTimeout="120000">
+                <http:headers><![CDATA[#[{"Accept":"application/json","client-secret":"","client-id":"","Content-Type":"application/json"}]]]></http:headers>
+                <http:response-validator>
+                    <http:success-status-code-validator values="500" />
+                </http:response-validator>
+            </http:request>
+        </munit:execution>
+        <munit:validation>
+            <munit-tools:assert-that expression="#[attributes.statusCode]" is="#[MunitTools::equalTo(500)]" message="The HTTP Status code is not correct!" doc:name="Assert That Status Code is 500" />
+			<munit-tools:assert doc:name="Assert That - Payload is Expecting 500" doc:id="d9e159ed-672d-4170-b803-00eb127713a9" >
+				<munit-tools:that ><![CDATA[#[import * from dw::test::Asserts 
+ ---
+payload must [notBeNull(),beObject(),$.code must equalTo(500),$.message must equalTo("Upstream service unable to fulfil request."),$.transactionId must notBe(beBlank()),(($.dateTime as Date)-now()).hours must equalTo(0)]]]]></munit-tools:that>
+			</munit-tools:assert>
+        </munit:validation>
+    </munit:test>
+    <munit:test name="post:\cases:application\json:uhub-sapi-config-400-application\json-FlowTest" description="Verifying functionality of [post:\cases:application\json:uhub-sapi-config-400-application\json]">
+        <munit:enable-flow-sources>
+            <munit:enable-flow-source value="uhub-sapi-main" />
+            <munit:enable-flow-source value="post:\cases:application\json:uhub-sapi-config" />
+        </munit:enable-flow-sources>
+        <munit:behavior>
+			<munit-tools:mock-when doc:name="Mock when" doc:id="ad784143-9d90-4fe5-819e-c14584d9c2e0" processor="db:insert">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="f04b74b9-34b2-4785-89d3-786477b370c9" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="ANY" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+        </munit:behavior>
+		<munit:execution>
+            <set-payload value="#[MunitTools::getResourceAsString('scaffolder/request/post_cases_application_json.json')]" />
+			<http:request config-ref="HTTP_Request_Configuration" method="POST" path="/cases" responseTimeout="120000">
+                <http:headers><![CDATA[#[{"Accept":"application/json","client-secret":"","Content-Type":"application/json"}]]]></http:headers>
+                <http:response-validator>
+                    <http:success-status-code-validator values="400" />
+                </http:response-validator>
+            </http:request>
+        </munit:execution>
+        <munit:validation>
+            <munit-tools:assert-that expression="#[attributes.statusCode]" is="#[MunitTools::equalTo(400)]" message="The HTTP Status code is not correct!" doc:name="Assert That Status Code is 400" />
+			<munit-tools:assert doc:name="Assert That - Payload is Expecting 400" doc:id="9d7d0d92-621d-4b12-8737-8f7234cf31b4" >
+				<munit-tools:that ><![CDATA[#[import * from dw::test::Asserts 
+ ---
+payload must [notBeNull(),beObject(),$.code must equalTo(400),$.message must equalTo("Bad request"),$.transactionId must notBe(beBlank()),(($.dateTime as Date)-now()).hours must equalTo(0)]]]]></munit-tools:that>
+			</munit-tools:assert>
+        </munit:validation>
+    </munit:test>
+    <munit:test name="post:\cases:application\json:uhub-sapi-config-503-application\json-FlowTest" description="Verifying functionality of [post:\cases:application\json:uhub-sapi-config-503-application\json]">
+        <munit:enable-flow-sources>
+            <munit:enable-flow-source value="uhub-sapi-main" />
+            <munit:enable-flow-source value="post:\cases:application\json:uhub-sapi-config" />
+        </munit:enable-flow-sources>
+        <munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="6b069bfa-9935-4d9e-b913-383c9d50b0e4" processor="db:insert">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="f04b74b9-34b2-4785-89d3-786477b370c9" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="CONNECTIVITY" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution>
+            <set-payload value="#[MunitTools::getResourceAsString('scaffolder/request/post_cases_application_json.json')]" />
+			<http:request config-ref="HTTP_Request_Configuration" method="POST" path="/cases" responseTimeout="120000">
+                <http:headers><![CDATA[#[{"Accept":"application/json","client-secret":"","client-id":"","Content-Type":"application/json"}]]]></http:headers>
+                <http:response-validator>
+                    <http:success-status-code-validator values="503" />
+                </http:response-validator>
+            </http:request>
+        </munit:execution>
+        <munit:validation>
+            <munit-tools:assert-that expression="#[attributes.statusCode]" is="#[MunitTools::equalTo(503)]" message="The HTTP Status code is not correct!" doc:name="Assert That Status Code is 503" />
+			<munit-tools:assert doc:name="Assert That - Payload is Expecting 503" doc:id="835db243-d8ec-4e4c-82a5-96a360d54901" >
+				<munit-tools:that ><![CDATA[#[import * from dw::test::Asserts 
+ ---
+payload must [notBeNull(),beObject(),$.code must equalTo(503),$.message must equalTo("Service unavailable"),$.transactionId must notBe(beBlank()),(($.dateTime as Date)-now()).hours must equalTo(0)]]]]></munit-tools:that>
+			</munit-tools:assert>
+        </munit:validation>
+    </munit:test>
+	<munit:test name="uhub-sapi-apikit-testTest" doc:id="91faf888-e3f1-4579-ad25-d3a7037eedb0" >
+		<munit:enable-flow-sources >
+			<munit:enable-flow-source value="uhub-sapi-main" />
+			<munit:enable-flow-source value="global-prepare-error-response-sub-flow" />
+		</munit:enable-flow-sources>
+		<munit:execution >
+			<set-payload value="#[MunitTools::getResourceAsString('scaffolder/request/post_cases_application_json.json')]" doc:name="Set Payload" doc:id="bb612ab8-d5fc-4fd9-96da-0b15c1f51508" />
+			<http:request method="POST" doc:name="Request" doc:id="cf8b356c-b923-4393-a60b-e44763f98aa0" config-ref="HTTP_Request_Configuration" path="/cases" responseTimeout="120000">
+					<http:headers><![CDATA[#[{"Accept":"application/json","client-secret":"","client-id":"","Content-Type":"application/csv"}]]]></http:headers>
+					<http:response-validator>
+						<http:success-status-code-validator values="415" />
+					</http:response-validator>
+				</http:request>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert That Status Code is 415" doc:id="4db14696-ca79-4559-a575-533ab6e4f5a6" message="The HTTP Status code is not correct!" expression="#[attributes.statusCode]" is="#[MunitTools::equalTo(415)]" />
+			<munit-tools:assert doc:name="Assert That - Payload is Expecting 415" doc:id="6c62a465-f204-43a4-8572-2050c4ed2814" >
+				<munit-tools:that ><![CDATA[#[import * from dw::test::Asserts 
+ ---
+payload must [notBeNull(),beObject(),$.code must equalTo(415),$.message must equalTo("Unsupported media type"),$.transactionId must notBe(beBlank()),(($.dateTime as Date)-now()).hours must equalTo(0)]]]]></munit-tools:that>
+			</munit-tools:assert>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="uhub-sapi-apikit-testTest1" doc:id="715c3cdd-ecb0-4306-9de8-ba2aac92b40a" >
+		<munit:enable-flow-sources >
+			<munit:enable-flow-source value="uhub-sapi-main" />
+		</munit:enable-flow-sources>
+		<munit:execution >
+			<set-payload value="#[MunitTools::getResourceAsString('scaffolder/request/post_cases_application_json.json')]" doc:name="Set Payload" doc:id="15b4b0c9-6471-4d1b-8494-d7eb2bdf1425" />
+			<http:request method="GET" doc:name="Request" doc:id="02003d9c-88b8-4a7d-af03-70e159264451" config-ref="HTTP_Request_Configuration" path="/cases" responseTimeout="120000" >
+				<http:headers ><![CDATA[#[{"Accept":"application/json","client-secret":"","client-id":"","Content-Type":"application/json"}]]]></http:headers>
+				<http:response-validator >
+					<http:success-status-code-validator values="405" />
+				</http:response-validator>
+			</http:request>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert That Status Code is 405" doc:id="085409b6-cd17-4613-b1ab-f2fcae73f419" message="The HTTP Status code is not correct!" expression="#[attributes.statusCode]" is="#[MunitTools::equalTo(405)]" />
+			<munit-tools:assert doc:name="Copy_of_Assert That - Payload is Expecting 405" doc:id="ae7edd97-2070-4ef8-bde6-a59bd3a503a7" >
+				<munit-tools:that ><![CDATA[#[import * from dw::test::Asserts 
+ ---
+payload must [notBeNull(),beObject(),$.code must equalTo(405),$.message must equalTo("Method Not Allowed"),$.transactionId must notBe(beBlank()),(($.dateTime as Date)-now()).hours must equalTo(0)]]]]></munit-tools:that>
+			</munit-tools:assert>
+		</munit:validation>
+	</munit:test>
+</mule>
