@@ -14,7 +14,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<app.runtime>4.3.0</app.runtime>
+		<app.runtime>4.4.0</app.runtime>
 		<munit.version>2.3.5</munit.version>
 		<mule.maven.plugin.version>3.5.2</mule.maven.plugin.version>
 	</properties>
@@ -102,12 +102,6 @@
 							<anypoint.platform.analytics_base_uri>https://anypoint.platform.analytics_base_uri</anypoint.platform.analytics_base_uri>
 						</properties>
 					</cloudHubDeployment>
-					<sharedLibraries>
-						<sharedLibrary>
-							<groupId>com.mycompany</groupId>
-							<artifactId>postgresql-42.2.24.jre7</artifactId>
-						</sharedLibrary>
-					</sharedLibraries>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -144,6 +138,11 @@
 			<classifier>mule-plugin</classifier>
 		</dependency>
 		<dependency>
+			<groupId>org.mule.runtime</groupId>
+			<artifactId>mule-core</artifactId>
+			<version>4.4.0</version>
+		</dependency>
+		<dependency>
 			<groupId>org.mule.connectors</groupId>
 			<artifactId>mule-sockets-connector</artifactId>
 			<version>1.2.1</version>
@@ -167,11 +166,13 @@
 			<version>1.2.3</version>
 			<classifier>mule-plugin</classifier>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.postgresql/postgresql -->
 		<dependency>
-			<groupId>com.mycompany</groupId>
-			<artifactId>postgresql-42.2.24.jre7</artifactId>
-			<version>0.1</version>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<version>42.2.24.jre7</version>
 		</dependency>
+
 		<dependency>
 			<groupId>com.mulesoft.munit</groupId>
 			<artifactId>munit-runner</artifactId>
@@ -219,6 +220,11 @@
 				<enabled>false</enabled>
 			</snapshots>
 		</pluginRepository>
+		<pluginRepository>
+			<id>mule-public</id>
+			<url>https://repository.mulesoft.org/nexus/content/repositories/releases</url>
+		</pluginRepository>
 	</pluginRepositories>
+
 
 </project>
