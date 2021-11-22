@@ -1,8 +1,9 @@
-http=
-port="16569"
-  
-db=
-user="uhub-sapi"
-dbname="uhub-dev"
-host="postgresql-58812-0.cloudclusters.net"
-password=![CgQx6rgHscTBD7aGVnOcsA==]
+http:
+  port: "![OStfdTI/DwY=]"
+
+db:
+  user: "![0IeaPYJ28xlj0UTM4uVU8A==]"
+  password: "![16lUvSpXwZ/jaiBJY96gXw==]"
+  dbname: "![HKoAtcYB0XPtIsCvgVW9oA==]"
+  host: "![2uv32aAJHXb3exh6kEx15SklsuqwI0MRHalxEIIN38fDau7BX8JQHg==]"
+  port: "![xBhr1VGf79w=]"
